@@ -17,19 +17,12 @@ function Navbar() {
             <button>New Story</button>
           </Link>
 
-          <Link to="/stories">
+          <Link to={`/stories/${user._id}`}>
             <button>My Stories</button>
           </Link>
 
-          <Link to="/profiles">
+          <Link to={`/users/${user._id}`}>
             <button>My Profile</button>
-          </Link>
-          <Link to="/community">
-            <button>Community</button>
-          </Link>
-
-          <Link to="/options">
-            <button>Options</button>
           </Link>
 
           <button onClick={logOutUser}>Logout</button>

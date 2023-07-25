@@ -15,7 +15,6 @@ const storySchema = new Schema(
     creator: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Creator is required."],
     },
     authors: [
       {
@@ -40,11 +39,6 @@ const storySchema = new Schema(
     },
     voice: {
       type: String,
-      enum: ["Bob", "Ana", "Puja", "Kabir", "Olga", "Peter"],
-    },
-    likes: {
-      type: Number,
-      default: 0,
     },
     comments: [
       {

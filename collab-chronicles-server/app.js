@@ -28,6 +28,9 @@ app.use("/api", isAuthenticated, sentenceRouter);
 const commentRouter = require("./routes/comment.routes");
 app.use("/api", isAuthenticated, commentRouter);
 
+const userRouter = require("./routes/user.routes");
+app.use("/api", isAuthenticated, userRouter);
+
 const authRouter = require("./routes/auth.routes");
 app.use("/auth", authRouter);
 

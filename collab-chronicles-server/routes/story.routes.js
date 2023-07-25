@@ -7,10 +7,14 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 
 //  GET /api/stories  -  See all stories from the logged in user
 
-router.get("/stories", isAuthenticated, (req, res, next) => {
-  User.find()
+router.get("/stories/:userId", isAuthenticated, (req, res, next) => {
+  const { userId } = req.params;
+  User.findById(userId)
     .populate("stories")
-    .then((allStories) => res.json(allStories))
+    .then((user) => {
+      console.log(user);
+      res.json(user.stories);
+    })
     .catch((err) => res.json(err));
 });
 
@@ -63,31 +67,37 @@ router.delete('/stories/:storyId', (req, res, next) => {
 */
 
 router.post("/stories", isAuthenticated, async (req, res, next) => {
-  const { title, userId, type, rounds, musicUrl, language, voice } = req.body;
+  const { title, creator, type, rounds, musicUrl, language, voice } = req.body;
+  console.log("before the Try. Here is the req.body:", req.body);
 
   try {
     // Create a new story
     const newStory = await Story.create({
       title,
       text: [],
-      creator: userId,
+      creator,
       authors: [],
       type,
       rounds,
       musicUrl,
       language,
-      voice,
-      likes: [],
       comments: [],
+      voice,
     });
+    console.log("inside the Try. Here is the newStory:", newStory);
 
     // Update the User model
-    const updatedUser = await User.findByIdAndUpdate(userId, {
+    const updatedUser = await User.findByIdAndUpdate(creator, {
       $push: { stories: newStory._id },
     });
 
     // Return the response
     res.json({ newStory, updatedUser });
+    console.log(
+      "behind the re.jsonHere is the newStory + updatedUser:",
+      newStory,
+      updatedUser
+    );
   } catch (err) {
     // Handle errors
     res

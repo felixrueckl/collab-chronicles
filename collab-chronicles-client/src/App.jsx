@@ -9,6 +9,7 @@ import NewStoryPage from "./pages/NewStoryPage";
 import EditStoryPage from "./pages/EditStoryPage";
 import SignupPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import UserPage from "./pages/UserPage";
 import IsPrivate from "./components/IsPrivate";
 import IsAnon from "./components/IsAnon";
 
@@ -27,14 +28,21 @@ function App() {
           }
         />
         <Route
-          path="/stories"
+          path="/stories/:userId"
           element={
             <IsPrivate>
               <MyStoriesPage />
             </IsPrivate>
           }
         />
-        <Route path="/stories/:storiesId" element={<StoryDetailsPage />} />
+        <Route
+          path="/stories/:storiesId"
+          element={
+            <IsPrivate>
+              <StoryDetailsPage />
+            </IsPrivate>
+          }
+        />
         <Route
           path="/stories/edit/:storiesId"
           element={
@@ -44,6 +52,15 @@ function App() {
             </IsPrivate>
           }
         />
+        <Route
+          path="/users/:userId"
+          element={
+            <IsPrivate>
+              <UserPage />
+            </IsPrivate>
+          }
+        />
+
         <Route
           path="/signup"
           element={

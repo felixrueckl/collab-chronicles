@@ -1,15 +1,13 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import axios from "axios";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../context/auth.context";
-import { useContext } from "react";
 
 const API_URL = "http://localhost:5005";
 
 function NewStory(props) {
   //Get the user
-  const { user } = props;
-  const storedToken = localStorage.getItem("authToken");
+  const { user } = useContext(AuthContext);
 
   //Choosing the title
   const [title, setTitle] = useState("");
@@ -84,13 +82,16 @@ function NewStory(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const storedToken = localStorage.getItem("authToken");
     const musicUrl = musicUrls[musicTitle];
     const language = languageAbbreviations[selectedLanguage];
     const voice = selectedVoice;
+    const creator = user._id;
+    const username = user.username;
 
     const requestBody = {
-      username: user.username,
+      creator,
+      username,
       title,
       type,
       rounds,
@@ -99,13 +100,7 @@ function NewStory(props) {
       voice,
     };
 
-    console.log("username:", user.username);
-    console.log("token:", storedToken);
-    console.log("type:", type);
-    console.log("rounds:", rounds);
-    console.log("musicUrl:", musicUrl);
-    console.log("language:", language);
-    console.log("voice:", voice);
+    console.log(requestBody);
 
     try {
       await axios.post(`${API_URL}/api/stories`, requestBody, {
@@ -117,12 +112,12 @@ function NewStory(props) {
       setTitle("");
       setType("Single Player");
       setRounds(2);
-      setMusicTitle("");
+      setMusicTitle("Celtic");
       setSelectedLanguage("");
       setSelectedVoice("");
 
       // Call a function to refresh the list of stories (if needed)
-      props.refreshStories();
+      //navigate("/game");
     } catch (error) {
       // Handle any errors that occur during the story creation process
       console.error("Error creating the story:", error);

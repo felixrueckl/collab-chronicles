@@ -30,25 +30,27 @@ function StoryDetailsPage(props) {
 
   return (
     <div className="StoryDetails">
-      {story && (
+      {story ? (
         <>
           <h1>{story.title}</h1>
           <p>{story.text}</p>
+
+          {story.comments &&
+            story.comments.map((comment) => (
+              <CommentCard key={comment._id} {...comment} />
+            ))}
         </>
+      ) : (
+        <p>Loading...</p>
       )}
 
       <AddComment refreshStories={getStory} projectId={storyId} />
-
-      {story &&
-        story.comments.map((comment) => (
-          <CommentCard key={comment._id} {...task} />
-        ))}
 
       <Link to="/stories">
         <button>Back</button>
       </Link>
 
-      <Link to={`/stories/edit/${storiesId}`}>
+      <Link to={`/stories/edit/${storyId}`}>
         <button>Edit Story</button>
       </Link>
     </div>

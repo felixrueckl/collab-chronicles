@@ -4,8 +4,9 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User.model");
 
 const router = express.Router();
-const saltRounds = 10;
 const { isAuthenticated } = require("./../middleware/jwt.middleware.js"); // <== IMPORT
+
+const saltRounds = 10;
 
 // POST /auth/signup
 router.post("/signup", (req, res, next) => {
@@ -105,6 +106,7 @@ router.post("/login", (req, res, next) => {
 
         // Send the token as the response
         res.status(200).json({ authToken: authToken });
+        console.log(authToken);
       } else {
         res.status(401).json({ message: "Unable to authenticate the user" });
       }
@@ -114,13 +116,24 @@ router.post("/login", (req, res, next) => {
 
 // GET  /auth/verify
 router.get("/verify", isAuthenticated, (req, res, next) => {
-  // If JWT token is valid the payload gets decoded by the
-  // isAuthenticated middleware and made available on `req.payload`
-  console.log(`req.payload`, req.payload);
+  const { _id } = req.payload;
 
-  // Send back the object with user data
-  // previously set as the token payload
-  res.status(200).json(req.payload);
+  User.findById(_id)
+    .then((user) => {
+      if (!user) {
+        res.status(404).json({ error: "User not found" });
+      } else {
+        // Return the user data, but exclude sensitive fields
+        const { password, ...userWithoutPassword } = user.toObject();
+        res.status(200).json(userWithoutPassword);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while verifying the user." });
+    });
 });
 
 module.exports = router;
