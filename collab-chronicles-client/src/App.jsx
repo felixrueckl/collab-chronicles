@@ -1,6 +1,5 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import MyStoriesPage from "./pages/MyStoriesPage";
@@ -12,6 +11,9 @@ import LoginPage from "./pages/LoginPage";
 import UserPage from "./pages/UserPage";
 import IsPrivate from "./components/IsPrivate";
 import IsAnon from "./components/IsAnon";
+import OpenStoriesPage from "./pages/OpenStoriesPage";
+import JoinGameRoom from "./components/JoinGameRoom";
+import GameRoom from "./components/GameRoom";
 
 function App() {
   return (
@@ -28,7 +30,7 @@ function App() {
           }
         />
         <Route
-          path="/stories/:userId"
+          path="/users/:userId/stories/"
           element={
             <IsPrivate>
               <MyStoriesPage />
@@ -36,7 +38,7 @@ function App() {
           }
         />
         <Route
-          path="/stories/:storiesId"
+          path="/stories/:storyId"
           element={
             <IsPrivate>
               <StoryDetailsPage />
@@ -47,11 +49,35 @@ function App() {
           path="/stories/edit/:storiesId"
           element={
             <IsPrivate>
-              {" "}
-              <EditStoryPage />{" "}
+              <EditStoryPage />
             </IsPrivate>
           }
         />
+        <Route
+          path="/gameroom/user/:userId/stories/open"
+          element={
+            <IsPrivate>
+              <OpenStoriesPage />
+            </IsPrivate>
+          }
+        />
+        <Route
+          path="/gameroom/:storyId/join"
+          element={
+            <IsPrivate>
+              <JoinGameRoom />
+            </IsPrivate>
+          }
+        />
+        <Route
+          path="/gameroom/:storyId/"
+          element={
+            <IsPrivate>
+              <GameRoom />
+            </IsPrivate>
+          }
+        />
+
         <Route
           path="/users/:userId"
           element={

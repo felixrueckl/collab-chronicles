@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import AddComment from "../components/AddComment";
 import CommentCard from "../components/CommentCard";
+import { AuthContext } from "../context/auth.context";
 
 const API_URL = "http://localhost:5005";
 
 function StoryDetailsPage(props) {
   const [story, setStory] = useState(null);
   const { storyId } = useParams();
+  const { user } = useContext(AuthContext);
 
   const getStory = () => {
     const storedToken = localStorage.getItem("authToken");
@@ -19,6 +21,7 @@ function StoryDetailsPage(props) {
       })
       .then((response) => {
         const oneStory = response.data;
+        console.log(oneStory); // Add this line
         setStory(oneStory);
       })
       .catch((error) => console.log(error));
@@ -44,15 +47,19 @@ function StoryDetailsPage(props) {
         <p>Loading...</p>
       )}
 
-      <AddComment refreshStories={getStory} projectId={storyId} />
+      <AddComment
+        refreshStories={getStory}
+        projectId={storyId}
+        userId={user._id}
+      />
 
-      <Link to="/stories">
+      {/*       <Link to="/stories">
         <button>Back</button>
       </Link>
 
       <Link to={`/stories/edit/${storyId}`}>
         <button>Edit Story</button>
-      </Link>
+      </Link> */}
     </div>
   );
 }

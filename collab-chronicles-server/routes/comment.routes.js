@@ -5,38 +5,37 @@ const Story = require("../models/Story.model");
 const User = require("../models/User.model");
 const Comment = require("../models/Comment.model");
 
-//  POST /api/comments  -  Creates a new comment
+const { isAuthenticated } = require("../middleware/jwt.middleware");
 
-router.post("/comments", async (req, res, next) => {
+router.post("/comments", isAuthenticated, (req, res, next) => {
   const { userId, storyId, text } = req.body;
 
-  try {
-    // Create the new comment
-    const newComment = await Comment.create({
-      userId: userId,
-      storyId: storyId,
-      text,
-      likes,
-    });
+  console.log("userId then storyId:", userId, storyId);
 
-    // Update the Story model
-    const updatedStory = await Story.findByIdAndUpdate(storyId, {
-      $push: { comments: newComment._id },
-    });
+  Comment.create({ userId, text })
+    .then((newComment) => {
+      console.log("newComment:", newComment);
 
-    // Update the User model
-    const updatedUser = await User.findByIdAndUpdate(userId, {
-      $push: { comments: newComment._id },
+      // After creating a new comment, find the related story and update its comments
+      Story.findByIdAndUpdate(
+        storyId,
+        { $push: { comments: newComment._id } },
+        { new: true }
+      )
+        .populate("comments")
+        .then((updatedStory) => {
+          console.log("updatedStory:", updatedStory);
+          res.status(200).json(newComment);
+        })
+        .catch((err) => {
+          console.log("Error updating story:", err);
+          res.json(err);
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.json(err);
     });
-
-    // Return the response
-    res.json({ updatedStory, updatedUser });
-  } catch (err) {
-    // Handle errors
-    res
-      .status(500)
-      .json({ error: "An error occurred while creating the comment." });
-  }
 });
 
 module.exports = router;
