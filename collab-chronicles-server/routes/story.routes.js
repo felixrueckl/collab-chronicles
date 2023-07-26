@@ -91,7 +91,7 @@ router.post("/stories", isAuthenticated, async (req, res, next) => {
       title,
       text: [],
       creator,
-      authors: [],
+      authors: [creator],
       maxAuthors,
       currentAuthors: 1,
       currentTurn: 0,
@@ -101,6 +101,7 @@ router.post("/stories", isAuthenticated, async (req, res, next) => {
       language,
       comments: [],
       voice,
+      currentAuthorTurn: creator,
     });
 
     // Update the User model

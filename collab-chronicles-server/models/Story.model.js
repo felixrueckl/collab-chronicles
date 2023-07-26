@@ -44,6 +44,19 @@ const storySchema = new Schema(
     voice: {
       type: String,
     },
+    roundNumber: {
+      type: Number,
+      default: 0,
+    },
+    gameStatus: {
+      type: String,
+      enum: ["waiting_for_players", "in_progress", "finished"],
+      default: "waiting_for_players",
+    },
+    currentAuthorTurn: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
     comments: [
       {
         type: Schema.Types.ObjectId,

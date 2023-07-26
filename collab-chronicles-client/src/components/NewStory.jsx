@@ -111,7 +111,7 @@ function NewStory(props) {
       maxAuthors: maxAuthorsMapping[type],
     };
 
-    console.log("Request Body:", requestBody);
+    console.log("Prepared Story Data:", requestBody);
 
     try {
       const response = await axios.post(`${API_URL}/api/stories`, requestBody, {
@@ -135,10 +135,8 @@ function NewStory(props) {
       setMusicTitle("Celtic");
       setSelectedLanguage("French");
       setSelectedVoice("Bob");
-
-      // Call a function to refresh the list of stories (if needed)
-      //navigate("/game");
       navigate(`/gameroom/${response.data.newStory._id}/join`);
+      console.log("New Story Response:", response.data);
     } catch (error) {
       // Handle any errors that occur during the story creation process
       console.error("Error creating the story:", error);

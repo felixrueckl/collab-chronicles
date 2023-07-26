@@ -19,14 +19,18 @@ router.post("/sentences", async (req, res, next) => {
     });
 
     // Update the Story model
-    const updatedStory = await Story.findByIdAndUpdate(storyId, {
-      $push: { text: newSentence._id },
-    });
+    const updatedStory = await Story.findByIdAndUpdate(
+      storyId,
+      { $push: { text: newSentence._id } },
+      { new: true }
+    );
 
     // Update the User model
-    const updatedUser = await User.findByIdAndUpdate(userId, {
-      $push: { sentences: newSentence._id },
-    });
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $push: { sentences: newSentence._id } },
+      { new: true }
+    );
 
     // Return the response
     res.json({ updatedStory, updatedUser });

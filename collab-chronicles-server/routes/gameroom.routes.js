@@ -46,15 +46,16 @@ router.put(
   async (req, res, next) => {
     const storyId = req.params.storyId;
     const userId = req.body.userId;
+    const io = req.app.get("io");
     try {
       // Find the story with the provided ID
       const story = await Story.findById(storyId);
       if (!story) {
         return res.status(404).json({ error: "Story not found" });
       }
-
-      if (story.authors.includes(userId)) {
-        return res.status(400).json({ error: "User is already an author" });
+      // Check if the user is already an author of the story
+      if (story.authors.map((author) => author.toString()).includes(userId)) {
+        return res.json({ message: "User has already joined the story" });
       }
 
       if (story.currentAuthors >= story.maxAuthors) {
@@ -62,22 +63,51 @@ router.put(
           .status(400)
           .json({ error: "Maximum number of authors reached" });
       }
+
       console.log("Story Before Update:", story);
+
+      if (!userId) {
+        return res.status(400).json({ error: "Invalid user ID" });
+      }
+
       story.authors.push(userId);
 
-      const updatedStory = await Story.findByIdAndUpdate(
-        storyId,
-        {
-          authors: story.authors,
-          currentAuthors: story.authors.length,
-        },
-        { new: true } // This returns the updated document
-      );
+      let updatedStory;
+
+      if (story.authors.length === story.maxAuthors) {
+        io.to(storyId).emit("lastAuthorJoined");
+        // If all authors have joined, start the game by setting the `currentTurn` to the first author
+        // and `isGameStarted` to `true`.
+        updatedStory = await Story.findByIdAndUpdate(
+          storyId,
+          {
+            authors: story.authors,
+            currentAuthors: story.authors.length,
+            currentTurn: 1,
+            currentAuthorTurn: story.authors[0]
+              ? story.authors[0].toString()
+              : null,
+            gameStatus: "in_progress",
+            roundNumber: 1,
+          },
+          { new: true }
+        );
+      } else {
+        updatedStory = await Story.findByIdAndUpdate(
+          storyId,
+          {
+            authors: story.authors,
+            currentAuthors: story.authors.length,
+          },
+          { new: true } // This returns the updated document
+        );
+      }
+
       console.log("Story After Update:", updatedStory);
 
-      if (updatedStory.currentAuthors === updatedStory.maxAuthors) {
-        // Start the game
-      }
+      // Emit an updateStory event to the Socket.IO room for this story
+      // assuming `socket` is available in this scope and you have implemented a room for each story
+      io.in(storyId).emit("updateStory", updatedStory);
 
       // Send a success response
       res.json({ message: "Successfully joined story", updatedStory });
@@ -88,7 +118,7 @@ router.put(
 );
 
 // GET /api/gameroom/:storyId/turn  -  Retrieves the current turn of the story
-router.get("/gameroom/:storyId/turn", isAuthenticated, (req, res, next) => {
+router.get("/gameroom/story/:storyId", isAuthenticated, (req, res, next) => {
   const { storyId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(storyId)) {
@@ -103,7 +133,7 @@ router.get("/gameroom/:storyId/turn", isAuthenticated, (req, res, next) => {
         return;
       }
 
-      res.json({ turn: story.currentTurn });
+      res.json(story); // Return the whole story instead of just the turn
     })
     .catch((error) => res.json(error));
 });
