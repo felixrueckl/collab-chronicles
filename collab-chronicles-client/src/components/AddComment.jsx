@@ -1,19 +1,20 @@
-// src/components/AddTask.jsx
-
 import { useState } from "react";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
 const API_URL = "http://localhost:5005";
 
 function AddComment(props) {
   const [comment, setComment] = useState("");
+  const { storyId } = useParams();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { userId, storyId } = props;
+    const { userId } = props;
     const text = comment;
     const requestBody = { userId, storyId, text };
     const storedToken = localStorage.getItem("authToken");
+    console.log(storyId);
 
     axios
       .post(`${API_URL}/api/comments`, requestBody, {

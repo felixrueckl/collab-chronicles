@@ -17,7 +17,11 @@ function Navbar() {
             <button>New Story</button>
           </Link>
 
-          <Link to={`/stories/${user._id}`}>
+          <Link to={`/gameroom/user/${user._id}/stories/open`}>
+            <button>Join Story</button>
+          </Link>
+
+          <Link to={`/users/${user._id}/stories`}>
             <button>My Stories</button>
           </Link>
 

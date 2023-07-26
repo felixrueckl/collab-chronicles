@@ -31,6 +31,9 @@ app.use("/api", isAuthenticated, commentRouter);
 const userRouter = require("./routes/user.routes");
 app.use("/api", isAuthenticated, userRouter);
 
+const gameroomRouter = require("./routes/gameroom.routes");
+app.use("/api", isAuthenticated, gameroomRouter);
+
 const authRouter = require("./routes/auth.routes");
 app.use("/auth", authRouter);
 

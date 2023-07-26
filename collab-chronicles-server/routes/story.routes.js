@@ -7,12 +7,11 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 
 //  GET /api/stories  -  See all stories from the logged in user
 
-router.get("/stories/:userId", isAuthenticated, (req, res, next) => {
+router.get("/users/:userId/stories", isAuthenticated, (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
     .populate("stories")
     .then((user) => {
-      console.log(user);
       res.json(user.stories);
     })
     .catch((err) => res.json(err));
@@ -30,6 +29,13 @@ router.get("/stories/:storyId", isAuthenticated, (req, res, next) => {
   // We use .populate() method to get swap the `_id`s for the actual Sentence documents
   Story.findById(storyId)
     .populate("text")
+    .populate({
+      path: "comments",
+      populate: {
+        path: "userId",
+        select: "username",
+      },
+    })
     .then((story) => res.status(200).json(story))
     .catch((error) => res.json(error));
 });
@@ -67,8 +73,17 @@ router.delete('/stories/:storyId', (req, res, next) => {
 */
 
 router.post("/stories", isAuthenticated, async (req, res, next) => {
-  const { title, creator, type, rounds, musicUrl, language, voice } = req.body;
-  console.log("before the Try. Here is the req.body:", req.body);
+  const {
+    title,
+    creator,
+    maxAuthors,
+    type,
+    rounds,
+    musicUrl,
+    language,
+    voice,
+  } = req.body;
+  console.log("Received Data:", req.body);
 
   try {
     // Create a new story
@@ -77,6 +92,9 @@ router.post("/stories", isAuthenticated, async (req, res, next) => {
       text: [],
       creator,
       authors: [],
+      maxAuthors,
+      currentAuthors: 1,
+      currentTurn: 0,
       type,
       rounds,
       musicUrl,
@@ -84,7 +102,6 @@ router.post("/stories", isAuthenticated, async (req, res, next) => {
       comments: [],
       voice,
     });
-    console.log("inside the Try. Here is the newStory:", newStory);
 
     // Update the User model
     const updatedUser = await User.findByIdAndUpdate(creator, {
@@ -93,11 +110,6 @@ router.post("/stories", isAuthenticated, async (req, res, next) => {
 
     // Return the response
     res.json({ newStory, updatedUser });
-    console.log(
-      "behind the re.jsonHere is the newStory + updatedUser:",
-      newStory,
-      updatedUser
-    );
   } catch (err) {
     // Handle errors
     res

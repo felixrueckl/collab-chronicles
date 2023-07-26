@@ -22,20 +22,24 @@ const storySchema = new Schema(
         ref: "User",
       },
     ],
+    maxAuthors: { type: Number, required: true },
+    currentAuthors: { type: Number, required: true, default: 1 },
     type: {
       type: String,
-      enum: ["Single Player", "Multiplayer"],
     },
     rounds: {
       type: Number,
       default: 2,
+    },
+    currentTurn: {
+      type: Number,
+      default: 0,
     },
     musicUrl: {
       type: String,
     },
     language: {
       type: String,
-      enum: ["fr-fr", "hi-in", "ru-ru"],
     },
     voice: {
       type: String,

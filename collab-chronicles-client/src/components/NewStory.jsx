@@ -1,11 +1,15 @@
 import { useState, useContext } from "react";
 import axios from "axios";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../context/auth.context";
+import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:5005";
+const socket = io(API_URL);
 
 function NewStory(props) {
+  const navigate = useNavigate();
+
   //Get the user
   const { user } = useContext(AuthContext);
 
@@ -15,10 +19,15 @@ function NewStory(props) {
     setTitle(e.target.value);
   };
 
-  //Choosing Single- or Multiplayer
-  const [type, setType] = useState("Single Player");
+  //Choosing how many authors
+  const [type, setType] = useState("2");
   const handleStoryTypeChange = (e) => {
     setType(e.target.value);
+  };
+  const maxAuthorsMapping = {
+    2: 2,
+    3: 3,
+    4: 4,
   };
 
   //Sets how many rounds will be played
@@ -54,8 +63,8 @@ function NewStory(props) {
     setMusicTitle(e.target.value);
   };
   //Choosing a language (accent) and a male/female voice when read out loud at the end
-  const [selectedLanguage, setSelectedLanguage] = useState("");
-  const [selectedVoice, setSelectedVoice] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("French");
+  const [selectedVoice, setSelectedVoice] = useState("Bob");
 
   const languageOptions = ["French", "Hindi", "Russian"];
   const voiceOptions = {
@@ -98,26 +107,38 @@ function NewStory(props) {
       musicUrl,
       language,
       voice,
+      authors: [creator],
+      maxAuthors: maxAuthorsMapping[type],
     };
 
-    console.log(requestBody);
+    console.log("Request Body:", requestBody);
 
     try {
-      await axios.post(`${API_URL}/api/stories`, requestBody, {
+      const response = await axios.post(`${API_URL}/api/stories`, requestBody, {
         headers: { Authorization: `Bearer ${storedToken}` },
       });
 
       // Story creation successful
       console.log("New story created successfully!");
+
+      const newStory = response.data.newStory;
+
+      socket.emit("createRoom", {
+        storyId: newStory._id,
+        maxAuthors: newStory.maxAuthors,
+        authors: newStory.authors,
+      });
+
       setTitle("");
-      setType("Single Player");
+      setType("2");
       setRounds(2);
       setMusicTitle("Celtic");
-      setSelectedLanguage("");
-      setSelectedVoice("");
+      setSelectedLanguage("French");
+      setSelectedVoice("Bob");
 
       // Call a function to refresh the list of stories (if needed)
       //navigate("/game");
+      navigate(`/gameroom/${response.data.newStory._id}/join`);
     } catch (error) {
       // Handle any errors that occur during the story creation process
       console.error("Error creating the story:", error);
@@ -142,19 +163,13 @@ function NewStory(props) {
         <div className="StoryTypeSelect">
           <label>
             {" "}
-            Choose Story mode:
+            How many authors will collaborate:
             <select value={type} onChange={handleStoryTypeChange}>
-              <option value="Single Player">Single Player</option>
-              <option value="Multiplayer">Multiplayer</option>
+              <option value="2">Two authors</option>
+              <option value="3">Three authors</option>
+              <option value="4">Four authors</option>
             </select>
           </label>
-        </div>
-
-        <div className="RoundsCounter">
-          <label>Rounds:</label>
-          <button onClick={handleDecrement}>-</button>
-          <span>{rounds}</span>
-          <button onClick={handleIncrement}>+</button>
         </div>
 
         <div className="MusicTitleSelect">
@@ -197,7 +212,12 @@ function NewStory(props) {
             </label>
           </div>
         )}
-
+        <div className="RoundsCounter">
+          <label>Rounds: 2 </label>
+          {/*           <button onClick={handleDecrement}>-</button>
+          <span>{rounds}</span>
+          <button onClick={handleIncrement}>+</button> */}
+        </div>
         <button type="submit">Start</button>
       </form>
     </div>
