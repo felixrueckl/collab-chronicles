@@ -150,6 +150,7 @@ router.put(
         {
           currentTurn: story.currentTurn + 1,
           currentAuthorTurn: nextAuthorTurn,
+          lastSentence: req.body.lastSentence,
         },
         { new: true }
       );
@@ -161,12 +162,12 @@ router.put(
 
       if (
         updatedStory.text.length ===
-        updatedStory.maxAuthors * updatedStory.rounds
+        updatedStory.maxAuthors * 2 * updatedStory.rounds
       ) {
         updatedStory.gameStatus = "finished";
         await updatedStory.save();
 
-        io.to(storyId).emit("endGame", updatedStory);
+        io.in(`room${updatedStory._id}`).emit("gameFinished");
       }
       console.log(`updatedStory is ${updatedStory}`);
 

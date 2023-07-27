@@ -22,6 +22,7 @@ function GameRoom() {
   const [allAuthorsJoined, setAllAuthorsJoined] = useState(false);
   const [currentAuthorTurn, setCurrentAuthorTurn] = useState(null);
   const [isUserTurn, setIsUserTurn] = useState(false);
+  const [gameStatus, setGameStatus] = useState("");
 
   const fetchStory = async () => {
     try {
@@ -34,20 +35,13 @@ function GameRoom() {
       setCurrentTurn(story.currentTurn);
       setAllAuthorsJoined(story.authors.length === story.maxAuthors);
       setCurrentAuthorTurn(story.currentAuthorTurn);
+      setGameStatus(story.gameStatus);
+      setLastSentence(story.lastSentence);
 
-      if (isUserTurn) {
-        setLastSentence("Not your turn.");
-      } else if (!isUserTurn) {
-        setLastSentence("It is your turn.");
-      }
-      if (
-        story.authors.length === story.maxAuthors &&
-        user._id === currentAuthorTurn
-      ) {
-        setLastSentence("It is.");
-      }
-      if (story.text.length > 0 && story.currentAuthorTurn === user._id) {
-        setLastSentence(story.text[story.text.length - 1].text);
+      if (story.currentTurn === 1) {
+        setLastSentence(
+          "Write two sentences to start your story and click submit."
+        );
       }
     } catch (error) {
       console.error("An error occurred while fetching the story: ", error);
@@ -96,14 +90,14 @@ function GameRoom() {
       fetchStory();
     });
 
-    socketRef.current.on("endGame", (data) => {
-      navigate(`/stories/${storyId}/read`);
+    socketRef.current.on("gameFinished", () => {
+      navigate(`/stories/${user._id}/finished`);
     });
 
     return () => {
       socketRef.current.disconnect();
     };
-  }, []);
+  }, [storyId, navigate, user]);
 
   useEffect(() => {
     if (currentAuthorTurn && currentAuthorTurn.includes(user._id)) {
@@ -112,6 +106,12 @@ function GameRoom() {
       setIsUserTurn(false);
     }
   }, [currentAuthorTurn, user]);
+
+  useEffect(() => {
+    if (gameStatus === "finished") {
+      navigate(`/users/${user._id}/stories`);
+    }
+  }, [gameStatus, navigate, user._id]);
 
   const submitSentence = async (event) => {
     event.preventDefault();
@@ -130,6 +130,7 @@ function GameRoom() {
         userId: user._id,
         turn: currentTurn + 1,
         storyId: storyId,
+        lastSentence: sentence2,
       };
       // Making the POST request for the first sentence
 
@@ -151,6 +152,7 @@ function GameRoom() {
         }
       );
       console.log("Second sentence:", sentence2);
+      setLastSentence(sentence2);
 
       // PUT request to update the turn
       const response3 = await axios.put(
@@ -176,17 +178,20 @@ function GameRoom() {
 
   return (
     <div className="GameRoom">
-      <h3>Title of your story:</h3>
-      <h4> {storyTitle}</h4>
-      <p>{lastSentence}</p>
-      <p>user._id of the currentAuthor:{currentAuthorTurn}</p>
+      <h3>Story Title: {storyTitle}</h3>
+      <h6>*{gameStatus}*</h6>
       {allAuthorsJoined &&
         currentAuthorTurn &&
         user._id &&
         currentAuthorTurn.toString() === user._id.toString() && (
           <form onSubmit={submitSentence}>
             <label>
-              Sentence 1:
+              <br></br>
+              <p>{lastSentence}</p>
+              <br></br>
+            </label>
+            <label>
+              Your first sentence:
               <input
                 type="text"
                 value={sentence1}
@@ -194,7 +199,8 @@ function GameRoom() {
               />
             </label>
             <label>
-              Sentence 2:
+              Your second sentence: <br></br>(this will be shown to the next
+              one):
               <input
                 type="text"
                 value={sentence2}
@@ -207,10 +213,33 @@ function GameRoom() {
       {currentAuthorTurn &&
         user._id &&
         currentAuthorTurn.toString() !== user._id.toString() && (
-          <p>
-            The story has started. Soon it will be your turn (again). Here are
-            some tips:
-          </p>
+          <div>
+            <p>
+              While you are waiting, here are some tips on how to write better
+              stories:
+            </p>
+            <ul>
+              <li>
+                Begin with a captivating hook that grabs the reader's attention
+                from the very first sentence.
+              </li>
+              <br></br>
+              <li>
+                Develop well-rounded and relatable characters that drive the
+                plot forward and elicit emotional connections from the readers.
+              </li>
+              <br></br>
+              <li>Have fun :)</li>
+            </ul>
+            <br></br>
+            <p>
+              FUN FACT: Did you know that this method is called Cadavre Exquis.
+              <br></br>
+              <br></br>
+              Cadavre Exquis refers to a playful method developed in Surrealism
+              to give room to chance in the creation of texts and images.
+            </p>
+          </div>
         )}
     </div>
   );

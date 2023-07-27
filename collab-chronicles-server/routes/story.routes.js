@@ -5,17 +5,28 @@ const Story = require("../models/Story.model");
 const User = require("../models/User.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 
-//  GET /api/stories  -  See all stories from the logged in user
-
-router.get("/users/:userId/stories", isAuthenticated, (req, res, next) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .populate("stories")
-    .then((user) => {
-      res.json(user.stories);
+//  GET /api/stories/:userId/finished  -  See all finished stories from the logged in user
+router.get("/stories/:userId/finished", isAuthenticated, (req, res, next) => {
+  const userId = req.params.userId;
+  console.log(userId);
+  Story.find({
+    $and: [{ authors: { $in: [userId] } }, { gameStatus: "finished" }],
+  })
+    .then((stories) => {
+      if (stories.length > 0) {
+        res.status(200).json(stories);
+      } else {
+        res.status(200).json({ message: "No stories found" });
+      }
     })
-    .catch((err) => res.json(err));
+    .catch((error) => {
+      res
+        .status(500)
+        .json({ message: "Error while fetching the stories", error: error });
+    });
 });
+
+//  GET /api/stories  -  See all stories from the logged in user
 
 router.get("/stories/:storyId", isAuthenticated, (req, res, next) => {
   const { storyId } = req.params;
@@ -24,22 +35,23 @@ router.get("/stories/:storyId", isAuthenticated, (req, res, next) => {
     res.status(400).json({ message: "Specified id is not valid" });
     return;
   }
-
   // Each Story document has a `text` array holding `_id`s of Sentence documents
   // We use .populate() method to get swap the `_id`s for the actual Sentence documents
   Story.findById(storyId)
     .populate("text")
+    .then((story) => {
+      console.log(story);
+      res.status(200).json(story);
+    })
+    .catch((error) => res.json(error));
+});
+/*
     .populate({
       path: "comments",
       populate: {
         path: "userId",
         select: "username",
-      },
-    })
-    .then((story) => res.status(200).json(story))
-    .catch((error) => res.json(error));
-});
-
+*/
 // PUT  /api/stories/:storiesId  -  Updates a specific story by id
 /* 
 router.put('/stories/:storyId', (req, res, next) => {

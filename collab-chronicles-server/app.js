@@ -20,19 +20,19 @@ const indexRoutes = require("./routes/index.routes");
 app.use("/api", indexRoutes);
 
 const storyRouter = require("./routes/story.routes");
-app.use("/api", isAuthenticated, storyRouter);
+app.use("/api", storyRouter);
 
 const sentenceRouter = require("./routes/sentence.routes");
-app.use("/api", isAuthenticated, sentenceRouter);
+app.use("/api", sentenceRouter);
 
 const commentRouter = require("./routes/comment.routes");
-app.use("/api", isAuthenticated, commentRouter);
+app.use("/api", commentRouter);
 
 const userRouter = require("./routes/user.routes");
-app.use("/api", isAuthenticated, userRouter);
+app.use("/api", userRouter);
 
 const gameroomRouter = require("./routes/gameroom.routes");
-app.use("/api", isAuthenticated, gameroomRouter);
+app.use("/api", gameroomRouter);
 
 const authRouter = require("./routes/auth.routes");
 app.use("/auth", authRouter);

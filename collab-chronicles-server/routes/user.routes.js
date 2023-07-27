@@ -7,6 +7,16 @@ const Story = require("../models/Story.model");
 const User = require("../models/User.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 
+router.get("/users/:userId/stories", isAuthenticated, (req, res, next) => {
+  const { userId } = req.params;
+  User.findById(userId)
+    .populate("stories")
+    .then((user) => {
+      res.json(user.stories);
+    })
+    .catch((err) => res.json(err));
+});
+
 router.get("/users/:userId", isAuthenticated, (req, res, next) => {
   const { userId } = req.params;
 

@@ -12,6 +12,9 @@ const storySchema = new Schema(
         ref: "Sentence",
       },
     ],
+    lastSentence: {
+      type: String,
+    },
     creator: {
       type: Schema.Types.ObjectId,
       ref: "User",

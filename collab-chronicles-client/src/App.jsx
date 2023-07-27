@@ -15,6 +15,7 @@ import OpenStoriesPage from "./pages/OpenStoriesPage";
 import JoinGameRoom from "./components/JoinGameRoom";
 import GameRoom from "./components/GameRoom";
 import ReadStoryPage from "./pages/ReadStoryPage";
+import StoryRevealPage from "./pages/StoryRevealPage";
 
 function App() {
   return (
@@ -42,7 +43,7 @@ function App() {
           path="/stories/:storyId"
           element={
             <IsPrivate>
-              <StoryDetailsPage />
+              <StoryRevealPage />
             </IsPrivate>
           }
         />
