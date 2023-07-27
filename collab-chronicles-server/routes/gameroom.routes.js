@@ -191,6 +191,7 @@ router.put(
       ) {
         updatedStory.gameStatus = "finished";
         await updatedStory.save();
+        io.to(storyId).emit("endGame", updatedStory);
       }
       console.log(`updatedStory is ${updatedStory}`);
 

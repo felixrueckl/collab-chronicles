@@ -90,6 +90,11 @@ function GameRoom() {
       fetchStory();
     });
 
+    socketRef.current.on("storyUpdated", () => {
+      console.log("StoryUpdated Event Triggered");
+      fetchStory();
+    });
+
     socketRef.current.on("endGame", (data) => {
       navigate(`/stories/${storyId}/read`);
     });
@@ -155,7 +160,6 @@ function GameRoom() {
         }
       );
       console.log("Turn update response:", response3.data);
-
       // Clearing the input fields after submission
       setSentence1("");
       setSentence2("");
@@ -175,7 +179,7 @@ function GameRoom() {
       <h3>Title of your story:</h3>
       <h4> {storyTitle}</h4>
       <p>{lastSentence}</p>
-      <p>currentUser ID:{currentAuthorTurn}</p>
+      <p>user._id of the currentAuthor:{currentAuthorTurn}</p>
       {allAuthorsJoined &&
         currentAuthorTurn &&
         user._id &&

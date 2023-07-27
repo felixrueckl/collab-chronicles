@@ -46,6 +46,7 @@ io.on("connection", (socket) => {
       room.users.push(userId);
       socket.join(storyId);
       console.log(`User ${userId} has joined the room ${storyId}`);
+      socket.to(storyId).emit("userJoined", { userId });
     }
   });
 
