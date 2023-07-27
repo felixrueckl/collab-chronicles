@@ -5,16 +5,20 @@ const socketIo = require("socket.io");
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:5173", // oclient origin
-    methods: ["GET", "POST"],
+    origin: "http://localhost:5173", // client origin
+    methods: ["GET", "POST", "PUT"],
   },
 });
+
+app.set("io", io);
 
 let rooms = {};
 
 io.on("connection", (socket) => {
   console.log("A user connected: " + socket.id);
-
+  socket.on("sentencesSubmitted", () => {
+    io.emit("refreshPage");
+  });
   socket.on("createRoom", (data) => {
     console.log(
       `Room ${data.storyId} created with max authors of ${data.maxAuthors}.`
@@ -44,6 +48,7 @@ io.on("connection", (socket) => {
       room.users.push(userId);
       socket.join(storyId);
       console.log(`User ${userId} has joined the room ${storyId}`);
+      socket.to(storyId).emit("userJoined", { userId });
     }
   });
 

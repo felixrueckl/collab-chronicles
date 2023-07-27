@@ -14,6 +14,7 @@ import IsAnon from "./components/IsAnon";
 import OpenStoriesPage from "./pages/OpenStoriesPage";
 import JoinGameRoom from "./components/JoinGameRoom";
 import GameRoom from "./components/GameRoom";
+import ReadStoryPage from "./pages/ReadStoryPage";
 
 function App() {
   return (
@@ -42,6 +43,14 @@ function App() {
           element={
             <IsPrivate>
               <StoryDetailsPage />
+            </IsPrivate>
+          }
+        />
+        <Route
+          path="/stories/:storyId/read"
+          element={
+            <IsPrivate>
+              <ReadStoryPage />
             </IsPrivate>
           }
         />

@@ -60,7 +60,6 @@ function OpenStoriesPage() {
 
       const stories = await response.json();
       setStories(stories);
-      console.log(stories);
     } catch (error) {
       // Log the error to console (or handle it in some other way)
       console.error("Failed to fetch open stories:", error);

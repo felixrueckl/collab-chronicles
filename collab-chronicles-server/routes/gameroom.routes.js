@@ -9,7 +9,6 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 router.get("/gameroom/user/:userId/stories/open", async (req, res) => {
   const { userId } = req.params;
   try {
-    // Fetch open stories from the database
     const openStories = await Story.find({
       $and: [
         { $expr: { $lt: ["$currentAuthors", "$maxAuthors"] } },
@@ -17,7 +16,6 @@ router.get("/gameroom/user/:userId/stories/open", async (req, res) => {
       ],
     });
 
-    // Format the stories
     const formattedStories = openStories.map((story) => {
       return {
         id: story._id,
@@ -27,10 +25,8 @@ router.get("/gameroom/user/:userId/stories/open", async (req, res) => {
       };
     });
 
-    // Send the stories to the client
     res.status(200).json(formattedStories);
   } catch (error) {
-    // Handle any errors that occur
     console.error("Failed to fetch open stories:", error);
     res
       .status(500)
@@ -38,23 +34,20 @@ router.get("/gameroom/user/:userId/stories/open", async (req, res) => {
   }
 });
 
-//PUT join a stroy
-
 router.put(
   "/gameroom/:storyId/join",
   isAuthenticated,
   async (req, res, next) => {
     const storyId = req.params.storyId;
     const userId = req.body.userId;
+    const io = req.app.get("io");
     try {
-      // Find the story with the provided ID
       const story = await Story.findById(storyId);
       if (!story) {
         return res.status(404).json({ error: "Story not found" });
       }
-
-      if (story.authors.includes(userId)) {
-        return res.status(400).json({ error: "User is already an author" });
+      if (story.authors.map((author) => author.toString()).includes(userId)) {
+        return res.json({ message: "User has already joined the story" });
       }
 
       if (story.currentAuthors >= story.maxAuthors) {
@@ -62,35 +55,56 @@ router.put(
           .status(400)
           .json({ error: "Maximum number of authors reached" });
       }
+
       console.log("Story Before Update:", story);
-      story.authors.push(userId);
 
-      const updatedStory = await Story.findByIdAndUpdate(
-        storyId,
-        {
-          authors: story.authors,
-          currentAuthors: story.authors.length,
-        },
-        { new: true } // This returns the updated document
-      );
-      console.log("Story After Update:", updatedStory);
-
-      if (updatedStory.currentAuthors === updatedStory.maxAuthors) {
-        // Start the game
+      if (!userId) {
+        return res.status(400).json({ error: "Invalid user ID" });
       }
 
-      // Send a success response
+      story.authors.push(userId);
+
+      let updatedStory;
+
+      if (story.authors.length === story.maxAuthors) {
+        io.to(storyId).emit("lastAuthorJoined");
+        updatedStory = await Story.findByIdAndUpdate(
+          storyId,
+          {
+            authors: story.authors,
+            currentAuthors: story.authors.length,
+            currentTurn: 1,
+            currentAuthorTurn: story.authors[0]
+              ? story.authors[0].toString()
+              : null,
+            gameStatus: "in_progress",
+            roundNumber: 1,
+          },
+          { new: true }
+        );
+      } else {
+        updatedStory = await Story.findByIdAndUpdate(
+          storyId,
+          {
+            authors: story.authors,
+            currentAuthors: story.authors.length,
+          },
+          { new: true }
+        );
+      }
+
+      console.log("Story After Update:", updatedStory);
+      io.in(storyId).emit("updateStory", updatedStory);
+
       res.json({ message: "Successfully joined story", updatedStory });
     } catch (error) {
-      next(error); // Pass errors to your error handler
+      next(error);
     }
   }
 );
 
-// GET /api/gameroom/:storyId/turn  -  Retrieves the current turn of the story
-router.get("/gameroom/:storyId/turn", isAuthenticated, (req, res, next) => {
+router.get("/gameroom/story/:storyId", isAuthenticated, (req, res, next) => {
   const { storyId } = req.params;
-
   if (!mongoose.Types.ObjectId.isValid(storyId)) {
     res.status(400).json({ message: "Specified id is not valid" });
     return;
@@ -102,28 +116,72 @@ router.get("/gameroom/:storyId/turn", isAuthenticated, (req, res, next) => {
         res.status(404).json({ message: "Story not found" });
         return;
       }
-
-      res.json({ turn: story.currentTurn });
+      res.json(story);
     })
     .catch((error) => res.json(error));
 });
 
-// PUT /api/gameroom/:storyId/turn - Updates the current turn of the story
 router.put(
-  "/gameroom/:storyId/turn/update",
+  "/gameroom/:storyId/turn/",
   isAuthenticated,
-  (req, res, next) => {
+  async (req, res, next) => {
     const { storyId } = req.params;
     const { turn } = req.body;
-
+    const io = req.app.get("io");
     if (!mongoose.Types.ObjectId.isValid(storyId)) {
       res.status(400).json({ message: "Specified id is not valid" });
       return;
     }
 
-    Story.findByIdAndUpdate(storyId, { currentTurn: turn }, { new: true })
-      .then((updatedStory) => res.json(updatedStory))
-      .catch((error) => res.json(error));
+    try {
+      const story = await Story.findById(storyId);
+      if (!story) {
+        console.log(`Story not found with id ${storyId}`);
+        return res.status(404).json({ error: "Story not found" });
+      }
+
+      let currentAuthor = story.currentAuthorTurn;
+      let currentAuthorIndex = story.authors.indexOf(currentAuthor);
+      let nextAuthorIndex = (currentAuthorIndex + 1) % story.authors.length;
+      let nextAuthorTurn = story.authors[nextAuthorIndex];
+
+      let updatedStory = await Story.findByIdAndUpdate(
+        storyId,
+        {
+          currentTurn: story.currentTurn + 1,
+          currentAuthorTurn: nextAuthorTurn,
+        },
+        { new: true }
+      );
+
+      if (!updatedStory) {
+        res.status(404).json({ error: "Story not found" });
+        return;
+      }
+
+      if (
+        updatedStory.text.length ===
+        updatedStory.maxAuthors * updatedStory.rounds
+      ) {
+        updatedStory.gameStatus = "finished";
+        await updatedStory.save();
+
+        io.to(storyId).emit("endGame", updatedStory);
+      }
+      console.log(`updatedStory is ${updatedStory}`);
+
+      io.to(storyId).emit("storyUpdated", updatedStory);
+      io.on("sentencesSubmitted", ({ storyId }) => {
+        io.to(storyId).emit("refreshPage");
+      });
+
+      res.json({ updatedStory });
+    } catch (err) {
+      console.error(err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while updating the turn." });
+    }
   }
 );
 

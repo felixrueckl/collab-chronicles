@@ -91,7 +91,7 @@ router.post("/stories", isAuthenticated, async (req, res, next) => {
       title,
       text: [],
       creator,
-      authors: [],
+      authors: [creator],
       maxAuthors,
       currentAuthors: 1,
       currentTurn: 0,
@@ -101,6 +101,7 @@ router.post("/stories", isAuthenticated, async (req, res, next) => {
       language,
       comments: [],
       voice,
+      currentAuthorTurn: creator,
     });
 
     // Update the User model
@@ -116,6 +117,22 @@ router.post("/stories", isAuthenticated, async (req, res, next) => {
       .status(500)
       .json({ error: "An error occurred while creating the story." });
   }
+});
+
+router.get("/stories/:storyId/read", isAuthenticated, (req, res, next) => {
+  const { storyId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(storyId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  // Each Story document has a `text` array holding `_id`s of Sentence documents
+  // We use .populate() method to get swap the `_id`s for the actual Sentence documents
+  Story.findById(storyId)
+    .populate("text")
+    .then((story) => res.status(200).json(story))
+    .catch((error) => res.json(error));
 });
 
 module.exports = router;
