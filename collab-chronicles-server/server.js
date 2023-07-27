@@ -6,7 +6,7 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: "http://localhost:5173", // client origin
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT"],
   },
 });
 
@@ -47,6 +47,11 @@ io.on("connection", (socket) => {
       socket.join(storyId);
       console.log(`User ${userId} has joined the room ${storyId}`);
     }
+  });
+
+  socket.on("sentencesSubmitted", ({ storyId }) => {
+    console.log(`Sentences submitted for story: ${storyId}`);
+    socket.to(storyId).emit("refreshPage");
   });
 
   socket.on("disconnect", () => {

@@ -117,7 +117,7 @@ router.put(
   }
 );
 
-// GET /api/gameroom/:storyId/turn  -  Retrieves the current turn of the story
+// GET /api/gameroom/story/:storyId  -  Retrieves the current turn of the story
 router.get("/gameroom/story/:storyId", isAuthenticated, (req, res, next) => {
   const { storyId } = req.params;
 
@@ -140,9 +140,9 @@ router.get("/gameroom/story/:storyId", isAuthenticated, (req, res, next) => {
 
 // PUT /api/gameroom/:storyId/turn - Updates the current turn of the story
 router.put(
-  "/gameroom/:storyId/turn/update",
+  "/gameroom/:storyId/turn/",
   isAuthenticated,
-  (req, res, next) => {
+  async (req, res, next) => {
     const { storyId } = req.params;
     const { turn } = req.body;
 
@@ -151,10 +151,72 @@ router.put(
       return;
     }
 
-    Story.findByIdAndUpdate(storyId, { currentTurn: turn }, { new: true })
-      .then((updatedStory) => res.json(updatedStory))
-      .catch((error) => res.json(error));
+    try {
+      const story = await Story.findById(storyId);
+      if (!story) {
+        console.log(`Story not found with id ${storyId}`);
+        return res.status(404).json({ error: "Story not found" });
+      }
+
+      // Handle the turn and round updates
+      // Find the next author
+      let currentAuthor = story.currentAuthorTurn;
+      let currentAuthorIndex = story.authors.indexOf(currentAuthor);
+      let nextAuthorIndex = (currentAuthorIndex + 1) % story.authors.length;
+      let nextAuthorTurn = story.authors[nextAuthorIndex];
+      console.log(`currentAuthor is ${currentAuthor}`);
+      console.log(`currentAuthorIndex is ${currentAuthorIndex}`);
+      console.log(`nextAuthorIndex is ${nextAuthorIndex}`);
+      console.log(`nextAuthorTurn is ${nextAuthorTurn}`);
+
+      // Update the current author turn and turn number
+      let updatedStory = await Story.findByIdAndUpdate(
+        storyId,
+        {
+          currentTurn: story.currentTurn + 1,
+          currentAuthorTurn: nextAuthorTurn,
+        },
+        { new: true }
+      );
+
+      if (!updatedStory) {
+        res.status(404).json({ error: "Story not found" });
+        return;
+      }
+
+      // Check if the game has ended
+      if (
+        updatedStory.text.length ===
+        updatedStory.maxAuthors * updatedStory.rounds
+      ) {
+        updatedStory.gameStatus = "finished";
+        await updatedStory.save();
+      }
+      console.log(`updatedStory is ${updatedStory}`);
+
+      // Get the io object
+      const io = req.app.get("io");
+
+      // Broadcast the updated story
+      io.to(storyId).emit("storyUpdated", updatedStory);
+
+      // Return the response
+      res.json({ updatedStory });
+    } catch (err) {
+      console.error(err); // This will log the full error object
+      res
+        .status(500)
+        .json({ error: "An error occurred while updating the turn." });
+    }
   }
 );
+
+function getNextAuthorTurn(story) {
+  const currentAuthorIndex = story.authors.findIndex(
+    (authorId) => authorId === story.currentAuthorTurn
+  );
+  const nextAuthorIndex = (currentAuthorIndex + 1) % story.authors.length;
+  return story.authors[nextAuthorIndex];
+}
 
 module.exports = router;
