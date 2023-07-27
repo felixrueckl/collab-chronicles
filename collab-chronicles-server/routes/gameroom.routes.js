@@ -144,12 +144,7 @@ router.put(
       let currentAuthorIndex = story.authors.indexOf(currentAuthor);
       let nextAuthorIndex = (currentAuthorIndex + 1) % story.authors.length;
       let nextAuthorTurn = story.authors[nextAuthorIndex];
-      console.log(`currentAuthor is ${currentAuthor}`);
-      console.log(`currentAuthorIndex is ${currentAuthorIndex}`);
-      console.log(`nextAuthorIndex is ${nextAuthorIndex}`);
-      console.log(`nextAuthorTurn is ${nextAuthorTurn}`);
 
-      // Update the current author turn and turn number
       let updatedStory = await Story.findByIdAndUpdate(
         storyId,
         {
@@ -170,29 +165,24 @@ router.put(
       ) {
         updatedStory.gameStatus = "finished";
         await updatedStory.save();
+
         io.to(storyId).emit("endGame", updatedStory);
       }
       console.log(`updatedStory is ${updatedStory}`);
 
       io.to(storyId).emit("storyUpdated", updatedStory);
+      io.on("sentencesSubmitted", ({ storyId }) => {
+        io.to(storyId).emit("refreshPage");
+      });
 
-      // Return the response
       res.json({ updatedStory });
     } catch (err) {
-      console.error(err); // This will log the full error object
+      console.error(err);
       res
         .status(500)
         .json({ error: "An error occurred while updating the turn." });
     }
   }
 );
-
-function getNextAuthorTurn(story) {
-  const currentAuthorIndex = story.authors.findIndex(
-    (authorId) => authorId === story.currentAuthorTurn
-  );
-  const nextAuthorIndex = (currentAuthorIndex + 1) % story.authors.length;
-  return story.authors[nextAuthorIndex];
-}
 
 module.exports = router;

@@ -16,7 +16,9 @@ let rooms = {};
 
 io.on("connection", (socket) => {
   console.log("A user connected: " + socket.id);
-
+  socket.on("sentencesSubmitted", () => {
+    io.emit("refreshPage");
+  });
   socket.on("createRoom", (data) => {
     console.log(
       `Room ${data.storyId} created with max authors of ${data.maxAuthors}.`
@@ -48,11 +50,6 @@ io.on("connection", (socket) => {
       console.log(`User ${userId} has joined the room ${storyId}`);
       socket.to(storyId).emit("userJoined", { userId });
     }
-  });
-
-  socket.on("sentencesSubmitted", ({ storyId }) => {
-    console.log(`Sentences submitted for story: ${storyId}`);
-    socket.to(storyId).emit("refreshPage");
   });
 
   socket.on("disconnect", () => {

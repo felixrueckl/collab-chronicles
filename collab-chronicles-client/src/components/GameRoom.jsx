@@ -35,12 +35,12 @@ function GameRoom() {
       setAllAuthorsJoined(story.authors.length === story.maxAuthors);
       setCurrentAuthorTurn(story.currentAuthorTurn);
 
-      /* if (isUserTurn) {
+      if (isUserTurn) {
         setLastSentence("Not your turn.");
       } else if (!isUserTurn) {
         setLastSentence("It is your turn.");
-      } */
-      /*       if (
+      }
+      if (
         story.authors.length === story.maxAuthors &&
         user._id === currentAuthorTurn
       ) {
@@ -48,7 +48,7 @@ function GameRoom() {
       }
       if (story.text.length > 0 && story.currentAuthorTurn === user._id) {
         setLastSentence(story.text[story.text.length - 1].text);
-      } */
+      }
     } catch (error) {
       console.error("An error occurred while fetching the story: ", error);
     }
@@ -86,8 +86,9 @@ function GameRoom() {
     });
 
     socketRef.current.on("refreshPage", () => {
+      console.log("refreshing");
       console.log("RefreshPage Event Triggered");
-      fetchStory();
+      window.location.reload();
     });
 
     socketRef.current.on("storyUpdated", () => {
