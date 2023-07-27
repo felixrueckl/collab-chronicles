@@ -7,13 +7,11 @@ import { useContext } from "react";
 const API_URL = "http://localhost:5005";
 
 function LoginPage(props) {
+  const navigate = useNavigate();
+  const { storeToken, authenticateUser } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(undefined);
-
-  const navigate = useNavigate();
-
-  const { storeToken, authenticateUser } = useContext(AuthContext);
 
   const handleEmail = (e) => setEmail(e.target.value);
   const handlePassword = (e) => setPassword(e.target.value);
@@ -24,8 +22,6 @@ function LoginPage(props) {
     axios
       .post(`${API_URL}/auth/login`, requestBody)
       .then((response) => {
-        // Request to the server's endpoint `/auth/login` returns a response
-        // with the JWT string ->  response.data.authToken
         storeToken(response.data.authToken);
         authenticateUser();
         navigate("/");
@@ -39,11 +35,9 @@ function LoginPage(props) {
   return (
     <div className="LoginPage">
       <h1>Login</h1>
-
       <form onSubmit={handleLoginSubmit}>
         <label>Email:</label>
         <input type="email" name="email" value={email} onChange={handleEmail} />
-
         <label>Password:</label>
         <input
           type="password"
@@ -51,7 +45,6 @@ function LoginPage(props) {
           value={password}
           onChange={handlePassword}
         />
-
         <button type="submit">Login</button>
       </form>
       {errorMessage && <p className="error-message">{errorMessage}</p>}

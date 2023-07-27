@@ -35,7 +35,6 @@ router.post("/signup", (req, res, next) => {
     return;
   }
 
-  // Check the users collection if a user with the same email already exists
   User.findOne({ email })
     .then((foundUser) => {
       // If the user with the same email already exists, send an error response
@@ -72,7 +71,7 @@ router.post("/signup", (req, res, next) => {
 // POST  /auth/login
 router.post("/login", (req, res, next) => {
   const { email, password } = req.body;
-
+  console.log(email, password);
   // Check if email or password are provided as empty string
   if (email === "" || password === "") {
     res.status(400).json({ message: "Provide email and password." });
@@ -90,28 +89,24 @@ router.post("/login", (req, res, next) => {
 
       // Compare the provided password with the one saved in the database
       const passwordCorrect = bcrypt.compareSync(password, foundUser.password);
-
       if (passwordCorrect) {
-        // Deconstruct the user object to omit the password
         const { _id, email, username } = foundUser;
-
-        // Create an object that will be set as the token payload
         const payload = { _id, email, username };
-
-        // Create and sign the token
-        const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
+        const authToken = jwt.sign(payload, "process.env.TOKEN_SECRET", {
           algorithm: "HS256",
           expiresIn: "6h",
         });
-
-        // Send the token as the response
-        res.status(200).json({ authToken: authToken });
-        console.log(authToken);
+        return res.status(200).json({ authToken: authToken });
       } else {
-        res.status(401).json({ message: "Unable to authenticate the user" });
+        return res
+          .status(401)
+          .json({ message: "Unable to authenticate the user" });
       }
     })
-    .catch((err) => res.status(500).json({ message: "Internal Server Error" }));
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: JSON.stringify(err) });
+    });
 });
 
 // GET  /auth/verify

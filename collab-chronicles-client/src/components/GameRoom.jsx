@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../context/auth.context";
 import io from "socket.io-client";
@@ -164,7 +164,6 @@ function GameRoom() {
       setSentence1("");
       setSentence2("");
       fetchStory();
-
       socketRef.current.emit("sentencesSubmitted", { storyId });
     } catch (error) {
       console.error(
