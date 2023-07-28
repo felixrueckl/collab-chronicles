@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 
 const API_URL = "http://localhost:5005";
@@ -11,6 +11,18 @@ function StoryRevealPage() {
   const [story, setStory] = useState(null);
   const [audioUrl, setAudioUrl] = useState("");
   const [isRevealed, setIsRevealed] = useState(false);
+  const [music, setMusic] = useState(null);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const musicPlayerRef = useRef();
+
+  useEffect(() => {
+    if (isRevealed && music) {
+      setIsMusicPlaying(true);
+      if (musicPlayerRef.current) {
+        musicPlayerRef.current.volume = 0.2;
+      }
+    }
+  }, [isRevealed, music]);
 
   const fetchStory = () => {
     const storedToken = localStorage.getItem("authToken");
@@ -43,6 +55,7 @@ function StoryRevealPage() {
     setAudioUrl(
       `https://api.voicerss.org/?key=${key}&hl=${language}&v=${voice}&src=${textToSpeech}`
     );
+    setMusic(story.musicUrl);
   };
 
   useEffect(() => {
@@ -54,17 +67,30 @@ function StoryRevealPage() {
       {story && (
         <>
           <h2>{story.title}</h2>
-          <button onClick={handleReveal}>Reveal</button>
+          {!isRevealed && <button onClick={handleReveal}>Reveal</button>}
           {isRevealed && (
             <>
-              <audio controls autoPlay>
-                <source src={audioUrl} type="audio/x-wav" />
-              </audio>
               <p>
                 {story.text.map((sentence, index) => (
-                  <span key={index}>{sentence.text} </span>
+                  <p style={{ margin: "10px 0" }} key={index}>
+                    {sentence.text}
+                  </p>
                 ))}
+
+                <p>Voice</p>
+                <audio src={audioUrl} autoPlay controls></audio>
+
+                <p>Music</p>
+
+                <audio
+                  src={story.musicUrl}
+                  ref={musicPlayerRef}
+                  autoPlay
+                  loop
+                  controls
+                ></audio>
               </p>
+              <Link to="/users/:userId/stories/">Back</Link>
             </>
           )}
         </>

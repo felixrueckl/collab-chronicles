@@ -119,12 +119,12 @@ function GameRoom() {
       const submittedData1 = {
         userId: user._id,
         storyId: storyId,
-        sentence1,
+        text: sentence1,
       };
       const submittedData2 = {
         userId: user._id,
         storyId: storyId,
-        sentence2,
+        text: sentence2,
       };
       const submittedDataTurn = {
         userId: user._id,
