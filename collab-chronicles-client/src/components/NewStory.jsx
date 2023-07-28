@@ -145,11 +145,11 @@ function NewStory(props) {
 
   return (
     <div className="NewStory">
-      <h3>Begin a new Story {user && user.username}</h3>
+      <h3>Start telling a new Story {user && user.username}.</h3>
 
       <form onSubmit={handleSubmit}>
         <div className="TitleInput">
-          <label>Title:</label>
+          <label> Give your story a title:</label>
           <input
             type="text"
             name="title"
@@ -171,7 +171,7 @@ function NewStory(props) {
         </div>
 
         <div className="MusicTitleSelect">
-          <label>Music:</label>
+          <label>Music Theme:</label>
           <select value={musicTitle} onChange={handleMusicChange}>
             <option value="Africa">Africa</option>
             <option value="Celtic">Celtic</option>
@@ -184,7 +184,7 @@ function NewStory(props) {
 
         <div>
           <label>
-            Select Language:
+            Select Language/Accent:
             <select value={selectedLanguage} onChange={handleLanguageChange}>
               <option value="">Select Language</option>
               {languageOptions.map((language) => (
