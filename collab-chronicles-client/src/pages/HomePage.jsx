@@ -8,10 +8,18 @@ function HomePage() {
 
   return (
     <>
-      <h1>Home Page</h1>
+      {!user && <h1>Welcome to Collab Chronicles</h1>}
+      {user && <h1>Welcome back, {user.username}!</h1>}
       <div className="homepage">
         <img src={imageUrl} alt="Cover-up Story" className="responsive-image" />
-        {user && <h2>Welcome to Collab Chronicles, {user.username}!</h2>}
+        {!user && <h2>Unleashe Your Creativity:</h2>}
+        {!user && (
+          <h2>
+            Join the Collab Chronicles for Fun-filled Storytelling Adventures!
+          </h2>
+        )}
+        {user && <h2>You opened the Gateway to Creativity:</h2>}
+        {user && <h2>Begin Your Storytelling Adventure now.</h2>}
       </div>
     </>
   );

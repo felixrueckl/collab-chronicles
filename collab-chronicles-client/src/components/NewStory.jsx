@@ -66,14 +66,27 @@ function NewStory(props) {
   const [selectedLanguage, setSelectedLanguage] = useState("French");
   const [selectedVoice, setSelectedVoice] = useState("Bob");
 
-  const languageOptions = ["French", "Hindi", "Russian"];
+  const languageOptions = [
+    "EnglishAUS",
+    "EnglishUS",
+    "French",
+    "GermanCH",
+    "Hindi",
+    "Russian",
+  ];
   const voiceOptions = {
+    EnglishAUS: ["Isla"],
+    EnglishUS: ["Amy", "Linda", "Mary", "John", "Mike"],
     French: ["Bob", "Ana"],
+    GermanCH: ["Tim"],
     Hindi: ["Puja", "Kabir"],
     Russian: ["Olga", "Peter"],
   };
   const languageAbbreviations = {
+    EnglishAUS: "en-au",
+    EnglishUS: "en-us",
     French: "fr-fr",
+    GermanCH: "de-ch",
     Hindi: "hi-in",
     Russian: "ru-ru",
   };
