@@ -40,3 +40,21 @@
 .read-the-docs {
   color: #888;
 }
+.responsive-image {
+  width: 100%;
+  height: auto;
+}
+
+/* If screen size is 1024px or more */
+@media screen and (min-width: 1024px) {
+  .responsive-image {
+    width: 80%;
+  }
+}
+
+/* If screen size is 640px or more */
+@media screen and (min-width: 640px) {
+  .responsive-image {
+    width: 50%;
+  }
+}

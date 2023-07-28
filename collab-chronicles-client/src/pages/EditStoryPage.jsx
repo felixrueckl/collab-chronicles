@@ -7,6 +7,7 @@ const API_URL = "http://localhost:5005";
 function EditStoryPage(props) {
   const [title, setTitle] = useState("");
   const { storyId } = useParams();
+  const navigate = useNavigate();
   const storedToken = localStorage.getItem("authToken");
 
   useEffect(() => {

@@ -12,10 +12,12 @@ const storySchema = new Schema(
         ref: "Sentence",
       },
     ],
+    lastSentence: {
+      type: String,
+    },
     creator: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Creator is required."],
     },
     authors: [
       {
@@ -23,28 +25,40 @@ const storySchema = new Schema(
         ref: "User",
       },
     ],
+    maxAuthors: { type: Number, required: true },
+    currentAuthors: { type: Number, required: true, default: 1 },
     type: {
       type: String,
-      enum: ["Single Player", "Multiplayer"],
     },
     rounds: {
       type: Number,
       default: 2,
+    },
+    currentTurn: {
+      type: Number,
+      default: 0,
     },
     musicUrl: {
       type: String,
     },
     language: {
       type: String,
-      enum: ["fr-fr", "hi-in", "ru-ru"],
     },
     voice: {
       type: String,
-      enum: ["Bob", "Ana", "Puja", "Kabir", "Olga", "Peter"],
     },
-    likes: {
+    roundNumber: {
       type: Number,
       default: 0,
+    },
+    gameStatus: {
+      type: String,
+      enum: ["waiting_for_players", "in_progress", "finished"],
+      default: "waiting_for_players",
+    },
+    currentAuthorTurn: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
     comments: [
       {

@@ -1,8 +1,8 @@
-import { useContext } from "react";
+import { useContext, cloneElement } from "react";
 import { AuthContext } from "../context/auth.context";
 import { Navigate } from "react-router-dom";
 
-function IsPrivate({ children }) {
+function IsPrivate({ children, ...restProps }) {
   const { isLoggedIn, isLoading } = useContext(AuthContext);
 
   // If the authentication is still loading
@@ -13,7 +13,7 @@ function IsPrivate({ children }) {
     return <Navigate to="/login" />;
   } else {
     // If the user is logged in, allow to see the page
-    return children;
+    return cloneElement(children, restProps);
   }
 }
 
